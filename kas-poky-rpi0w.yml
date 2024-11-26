@@ -1,0 +1,74 @@
+header:
+  version: 8
+
+machine: raspberrypi0-wifi
+distro: poky
+target:
+  - core-image-base
+
+repos:
+  meta-raspberrypi:
+    url: https://github.com/agherzan/meta-raspberrypi.git
+    path: layers/meta-raspberrypi
+    branch: master
+
+  poky:
+    url: https://git.yoctoproject.org/git/poky
+    path: layers/poky
+    branch: master
+    layers:
+      meta:
+      meta-poky:
+      meta-yocto-bsp:
+
+  meta-openembedded:
+    url: http://git.openembedded.org/meta-openembedded
+    path: layers/meta-openembedded
+    branch: master
+    layers:
+      meta-oe:
+      meta-python:
+      meta-networking:
+      meta-perl:
+
+  meta-qt5:
+    url: https://github.com/meta-qt5/meta-qt5/
+    path: layers/meta-qt5
+    branch: master
+
+  meta-rpi-ap1302:
+    path: .
+
+bblayers_conf_header:
+  standard: |
+    POKY_BBLAYERS_CONF_VERSION = "2"
+    BBPATH = "${TOPDIR}"
+    BBFILES ?= ""
+local_conf_header:
+  reduce_diskspace: |
+    INHERIT += "rm_work_and_downloads"
+  standard: |
+    CONF_VERSION = "2"
+    PACKAGE_CLASSES = "package_rpm"
+    SDKMACHINE = "x86_64"
+    USER_CLASSES = "buildstats"
+    PATCHRESOLVE = "noop"
+    ENABLE_I2C = "1"
+    DISABLE_RPI_BOOT_LOGO = "1"
+    LICENSE_FLAGS_ACCEPTED = "synaptics-killswitch"
+    IMAGE_INSTALL:append = " i2c-tools raspi-gpio raspi-utils picamera-libs"
+    KERNEL-MODULE-AUTOLOAD:append = "i2c-dev i2c-bcm2708"
+  debug-tweaks: |
+    EXTRA_IMAGE_FEATURES = "allow-empty-password allow-root-login bash-completion-pkgs empty-root-password "
+  rpi-specific: |
+    RPI_EXTRA_CONFIG = "dtparam=i2c_vc=on"
+  diskmon: |
+    BB_DISKMON_DIRS = "\
+        STOPTASKS,${TMPDIR},1G,100K \
+        STOPTASKS,${DL_DIR},1G,100K \
+        STOPTASKS,${SSTATE_DIR},1G,100K \
+        STOPTASKS,/tmp,100M,100K \
+        HALT,${TMPDIR},100M,1K \
+        HALT,${DL_DIR},100M,1K \
+        HALT,${SSTATE_DIR},100M,1K \
+        HALT,/tmp,10M,1K"
