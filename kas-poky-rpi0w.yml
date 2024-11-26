@@ -57,7 +57,7 @@ local_conf_header:
     DISABLE_RPI_BOOT_LOGO = "1"
     LICENSE_FLAGS_ACCEPTED = "synaptics-killswitch"
     IMAGE_INSTALL:append = " i2c-tools raspi-gpio raspi-utils picamera-libs"
-    KERNEL-MODULE-AUTOLOAD:append = "i2c-dev i2c-bcm2708"
+    KERNEL_MODULE_AUTOLOAD:append = "i2c-dev i2c-bcm2708"
   debug-tweaks: |
     EXTRA_IMAGE_FEATURES = "allow-empty-password allow-root-login bash-completion-pkgs empty-root-password "
   rpi-specific: |
