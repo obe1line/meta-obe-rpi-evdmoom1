@@ -158,7 +158,7 @@ index ba7bdf78e268..929a017c0df6 100644
  
 +config VIDEO_AP1302
 +	tristate "ON Semiconductor AP1302 external ISP support"
-+	depends on I2C && VIDEO_V4L2
++	depends on VIDEO_V4L2_I2C
 +	select VIDEO_V4L2_SUBDEV_API
 +	help
 +	  This is a Video4Linux2 sensor driver for the ON Semiconductor
