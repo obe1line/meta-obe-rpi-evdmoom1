@@ -56,26 +56,26 @@ index 000000000000..3850ff4b5115
 +			port {
 +				csi_ep: endpoint {
 +					remote-endpoint = <&cam_endpoint>;
-+					data-lanes = <1 2>;
++					data-lanes = <1 2 3 4>;
 +					clock-noncontinuous;
 +				};
 +			};
 +		};
 +	};
 +
-+	fragment@2 {
-+		target = <&i2c0if>;
-+		__overlay__ {
-+			status = "okay";
-+		};
-+	};
++	//fragment@2 {
++	//	target = <&i2c0if>;
++	//	__overlay__ {
++	//		status = "okay";
++	//	};
++	//};
 +
-+	fragment@3 {
-+		target = <&i2c0mux>;
-+		__overlay__ {
-+			status = "okay";
-+		};
-+	};
++	//fragment@3 {
++	//	target = <&i2c0mux>;
++	//	__overlay__ {
++	//		status = "okay";
++	//	};
++	//};
 +
 +	reg_frag: fragment@4 {
 +		target = <&cam1_reg>;

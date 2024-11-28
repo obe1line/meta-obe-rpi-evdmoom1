@@ -1,0 +1,24 @@
+From 3aec6596e04e091a0eb284c0b77ab2687289ab27 Mon Sep 17 00:00:00 2001
+From: kas User <kas@example.com>
+Date: Thu, 28 Nov 2024 00:10:56 +0000
+Subject: [PATCH] add overlay into makefile
+
+---
+ arch/arm/boot/dts/overlays/Makefile | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/arch/arm/boot/dts/overlays/Makefile b/arch/arm/boot/dts/overlays/Makefile
+index cf0574a06cb2..332abe0aa503 100644
+--- a/arch/arm/boot/dts/overlays/Makefile
++++ b/arch/arm/boot/dts/overlays/Makefile
+@@ -143,6 +143,7 @@ dtbo-$(CONFIG_ARCH_BCM2835) += \
+ 	iqaudio-digi-wm8804-audio.dtbo \
+ 	iqs550.dtbo \
+ 	irs1125.dtbo \
++	jac01.dtbo \
+ 	jedec-spi-nor.dtbo \
+ 	justboom-both.dtbo \
+ 	justboom-dac.dtbo \
+-- 
+2.47.0
+
