@@ -6,7 +6,7 @@ Subject: [PATCH] ap1302 files
 
 ---
  arch/arm/boot/dts/overlays/jac01-overlay.dts |   94 +
- arch/arm/boot/dts/overlays/jac01.dtsi        |   27 +
+ arch/arm/boot/dts/overlays/jac01.dtsi        |   37 +
  drivers/media/i2c/Kconfig                    |   11 +
  drivers/media/i2c/Makefile                   |    1 +
  drivers/media/i2c/jac01.c                    | 3857 ++++++++++++++++++
@@ -63,19 +63,19 @@ index 000000000000..3850ff4b5115
 +		};
 +	};
 +
-+	//fragment@2 {
-+	//	target = <&i2c0if>;
-+	//	__overlay__ {
-+	//		status = "okay";
-+	//	};
-+	//};
++	fragment@2 {
++		target = <&i2c0if>;
++		__overlay__ {
++			status = "okay";
++		};
++	};
 +
-+	//fragment@3 {
-+	//	target = <&i2c0mux>;
-+	//	__overlay__ {
-+	//		status = "okay";
-+	//	};
-+	//};
++	fragment@3 {
++		target = <&i2c0mux>;
++		__overlay__ {
++			status = "okay";
++		};
++	};
 +
 +	reg_frag: fragment@4 {
 +		target = <&cam1_reg>;
@@ -120,7 +120,7 @@ new file mode 100644
 index 000000000000..90be36021516
 --- /dev/null
 +++ b/arch/arm/boot/dts/overlays/jac01.dtsi
-@@ -0,0 +1,27 @@
+@@ -0,0 +1,37 @@
 +// Fragment that configures an jac01
 +
 +cam_node: jac01@3d {
@@ -135,8 +135,18 @@ index 000000000000..90be36021516
 +	VDIG-supply = <&cam_dummy_reg>;	/* 1.8v */
 +	VDDL-supply = <&cam_dummy_reg>;	/* 1.2v */
 +
-+	rotation = <180>;
++	rotation = <0>;
 +	orientation = <2>;
++
++	sensors {
++		sensor,model = "ar1335";
++		sensor,resolution = <1920 1080>;
++		sensor,format = "NV12";
++					
++		sensor@0 {
++			reg = <0>;
++		};
++	};
 +
 +	port {
 +		cam_endpoint: endpoint {

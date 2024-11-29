@@ -1,6 +1,7 @@
 From 3aec6596e04e091a0eb284c0b77ab2687289ab27 Mon Sep 17 00:00:00 2001
 From: kas User <kas@example.com>
 Date: Thu, 28 Nov 2024 00:10:56 +0000
+Upstream-Status: Pending
 Subject: [PATCH] add overlay into makefile
 
 ---

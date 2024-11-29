@@ -28,6 +28,7 @@ repos:
     layers:
       meta-oe:
       meta-python:
+      meta-multimedia:
       meta-networking:
       meta-perl:
 
@@ -57,7 +58,12 @@ local_conf_header:
     DISABLE_RPI_BOOT_LOGO = "1"
     LICENSE_FLAGS_ACCEPTED = "synaptics-killswitch"
     IMAGE_INSTALL:append = " i2c-tools raspi-gpio raspi-utils picamera-libs"
+    IMAGE_INSTALL:append = " v4l-utils media-ctl"
+    IMAGE_INSTALL:append = " libcamera libcamera-apps"
+    IMAGE_INSTALL:append = " gstreamer1.0 gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad"
     KERNEL_MODULE_AUTOLOAD:append = "i2c-dev i2c-bcm2708"
+    # disable QA checks for libcamera failing builds
+    INSANE_SKIP:${PN} += "buildpaths"
   debug-tweaks: |
     EXTRA_IMAGE_FEATURES = "allow-empty-password allow-root-login bash-completion-pkgs empty-root-password "
   rpi-specific: |
