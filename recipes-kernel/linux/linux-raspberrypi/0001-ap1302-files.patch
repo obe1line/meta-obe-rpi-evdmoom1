@@ -122,7 +122,7 @@ index 000000000000..90be36021516
 +++ b/arch/arm/boot/dts/overlays/jac01.dtsi
 @@ -0,0 +1,37 @@
 +// Fragment that configures an jac01
-+
++#include <dt-bindings/gpio/gpio.h>
 +cam_node: jac01@3d {
 +	compatible = "onnn,ap1302";
 +	reg = <0x3d>;
@@ -130,19 +130,19 @@ index 000000000000..90be36021516
 +
 +	clocks = <&cam1_clk>;
 +	clock-names = "xclk";
-+
 +	VANA-supply = <&cam1_reg>;	/* 2.8v */
 +	VDIG-supply = <&cam_dummy_reg>;	/* 1.8v */
 +	VDDL-supply = <&cam_dummy_reg>;	/* 1.2v */
-+
++	reset-gpios = <&gpio 40 GPIO_ACTIVE_LOW>;
++	// power controlled by the regulator not "standby-gpios = <&gpio 44 GPIO_ACTIVE_HIGH>;"
 +	rotation = <0>;
 +	orientation = <2>;
 +
 +	sensors {
 +		sensor,model = "ar1335";
 +		sensor,resolution = <1920 1080>;
-+		sensor,format = "NV12";
-+					
++		sensor,format = <0x300a>; // MEDIA_BUS_FMT_SGRBG10_1X10
++
 +		sensor@0 {
 +			reg = <0>;
 +		};

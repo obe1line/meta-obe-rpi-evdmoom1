@@ -65,9 +65,11 @@ local_conf_header:
     # disable QA checks for libcamera failing builds
     INSANE_SKIP:${PN} += "buildpaths"
   debug-tweaks: |
-    EXTRA_IMAGE_FEATURES = "allow-empty-password allow-root-login bash-completion-pkgs empty-root-password "
+    EXTRA_IMAGE_FEATURES:append = " allow-empty-password allow-root-login bash-completion-pkgs empty-root-password"
+    EXTRA_IMAGE_FEATURES:append = " ssh-server-openssh"
   rpi-specific: |
     RPI_EXTRA_CONFIG = "dtparam=i2c_vc=on"
+    DISTRO_FEATURES:append = "wifi"
   diskmon: |
     BB_DISKMON_DIRS = "\
         STOPTASKS,${TMPDIR},1G,100K \
