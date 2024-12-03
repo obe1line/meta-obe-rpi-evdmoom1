@@ -56,7 +56,7 @@ index 000000000000..3850ff4b5115
 +			port {
 +				csi_ep: endpoint {
 +					remote-endpoint = <&cam_endpoint>;
-+					data-lanes = <1 2 3 4>;
++					data-lanes = <1 2>;
 +					clock-noncontinuous;
 +				};
 +			};
@@ -151,7 +151,7 @@ index 000000000000..90be36021516
 +	port {
 +		cam_endpoint: endpoint {
 +			clock-lanes = <0>;
-+			data-lanes = <1 2 3 4>;
++			data-lanes = <1 2>;
 +			clock-noncontinuous;
 +			link-frequencies =
 +				/bits/ 64 <456000000>;
