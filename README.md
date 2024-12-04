@@ -1,4 +1,26 @@
-# Raspberry PI Zero Wifi with AP1302 ISP
-# requires python3 kas module to configure and build
-# run kas_build.sh to build the image
+# Raspberry PI Zero Wifi with EVDM-OOM1 camera module
+
+## Requirements
+python3 kas package
+
+## Building
+```bash
+./kas_build.sh
+```
+
+## Write to SDCard
+```bash
 # bmaptool to write it to sdcard
+```
+
+## Develop the kernel module
+```bash
+devtool modify linux-raspberrypi
+cd workspace/sources/linux-raspberrypi
+# apply the patches
+git apply ../../../../meta-obe-rpi-ap1302/recipes-kernel/linux/linux-raspberrypi/0001-ap1302-files.patch
+git apply ../../../../meta-obe-rpi-ap1302/recipes-kernel/linux/linux-raspberrypi/0002-add-overlay-into-makefile.patch
+# <edit the code and build with make etc.>
+# E.g.
+devtool build linux-raspberrypi
+```
