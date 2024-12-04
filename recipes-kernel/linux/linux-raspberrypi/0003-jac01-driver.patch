@@ -24,7 +24,7 @@ index 000000000000..41b9f30242f2
 + * Copyright (C) 2021, Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 + *
 + */
-+
++ #define DEBUG 1
 +#include <linux/clk.h>
 +#include <linux/debugfs.h>
 +#include <linux/delay.h>
@@ -2645,50 +2645,50 @@ index 000000000000..41b9f30242f2
 +
 +static int ap1302_subdev_registered(struct v4l2_subdev *sd)
 +{
-+	struct ap1302_device *ap1302 = to_ap1302(sd);
-+	unsigned int i;
-+	const char *status;
-+	int ret;
-+	u32 flag;
++	//struct ap1302_device *ap1302 = to_ap1302(sd);
++	//unsigned int i;
++	//const char *status;
++	//int ret;
++	//u32 flag;
 +
-+	for (i = 0; i < ARRAY_SIZE(ap1302->sensors); ++i) {
-+		struct ap1302_sensor *sensor = &ap1302->sensors[i];
++	//for (i = 0; i < ARRAY_SIZE(ap1302->sensors); ++i) {
++	//	struct ap1302_sensor *sensor = &ap1302->sensors[i];
 +
-+		dev_dbg(ap1302->dev, "registering sensor %u\n", i);
++	//	dev_dbg(ap1302->dev, "registering sensor %u\n", i);
 +
-+		ret = v4l2_device_register_subdev(sd->v4l2_dev, &sensor->sd);
-+		if (ret)
-+			return ret;
++	//	ret = v4l2_device_register_subdev(sd->v4l2_dev, &sensor->sd);
++	//	if (ret)
++	//		return ret;
 +
-+		flag=0;
-+		status = of_get_property(sensor->of_node, "status", &ret);
-+		if (status == NULL) {
++	//	flag=0;
++	//	status = of_get_property(sensor->of_node, "status", &ret);
++	//	if (status == NULL) {
 +			// No sensor node, unconnected, disabled
-+			flag = MEDIA_LNK_FL_IMMUTABLE;
-+		}
-+		else if (ret > 0) {
-+			if (!strcmp(status, "okay") || !strcmp(status, "ok"))
-+				flag = MEDIA_LNK_FL_ENABLED;
-+			else if (!strcmp(status, "immutable"))
-+				flag = MEDIA_LNK_FL_ENABLED |
-+					MEDIA_LNK_FL_IMMUTABLE;
++	//		flag = MEDIA_LNK_FL_IMMUTABLE;
++	//	}
++	//	else if (ret > 0) {
++	//		if (!strcmp(status, "okay") || !strcmp(status, "ok"))
++	//			flag = MEDIA_LNK_FL_ENABLED;
++	//		else if (!strcmp(status, "immutable"))
++	//			flag = MEDIA_LNK_FL_ENABLED |
++	//				MEDIA_LNK_FL_IMMUTABLE;
 +			// else disabled
-+		}
++	//	}
 +
-+		ret = media_create_pad_link(&sensor->sd.entity, 0,
-+					    &sd->entity, i,
-+					    flag);
-+		if (ret)
-+			return ret;
++	//	ret = media_create_pad_link(&sensor->sd.entity, 0,
++	//				    &sd->entity, i,
++	//				    flag);
++	//	if (ret)
++	//		return ret;
 +
 +		/* Notify MIPI subdev entity */
-+		ret = media_entity_call(&sd->entity, link_setup,
-+					&sd->entity.pads[i],
-+					&sensor->sd.entity.pads[0],
-+					flag);
-+		if (ret < 0 && ret != -ENOIOCTLCMD)
-+			return ret;
-+	}
++	//	ret = media_entity_call(&sd->entity, link_setup,
++	//				&sd->entity.pads[i],
++	//				&sensor->sd.entity.pads[0],
++	//				flag);
++	//	if (ret < 0 && ret != -ENOIOCTLCMD)
++	//		return ret;
++	//}
 +
 +	return 0;
 +}
@@ -2718,20 +2718,20 @@ index 000000000000..41b9f30242f2
 +		default:
 +			return -EINVAL;
 +		}
-+	} else if (local->flags & MEDIA_PAD_FL_SINK) {
-+		switch (local->index) {
-+		case AP1302_PAD_SINK_0:
-+		case AP1302_PAD_SINK_1:
-+			ap1302->sensors[local->index].link_enabled = !!(flags & MEDIA_LNK_FL_ENABLED);
-+			dev_dbg(ap1302->dev,"Sensor %d Link %s\n",local->index,
-+					flags & MEDIA_LNK_FL_ENABLED? "Enabled"
-+							: "Disabled");
++	} //else if (local->flags & MEDIA_PAD_FL_SINK) {
++	//	switch (local->index) {
++	//	case AP1302_PAD_SINK_0:
++	//	case AP1302_PAD_SINK_1:
++	//		ap1302->sensors[local->index].link_enabled = !!(flags & MEDIA_LNK_FL_ENABLED);
++	//		dev_dbg(ap1302->dev,"Sensor %d Link %s\n",local->index,
++	//				flags & MEDIA_LNK_FL_ENABLED? "Enabled"
++	//						: "Disabled");
 +
-+			break;
-+		default:
-+			return -EINVAL;
-+		}
-+	}
++	//		break;
++	//	default:
++	//		return -EINVAL;
++	//	}
++	//}
 +
 +	return 0;
 +}
