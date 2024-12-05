@@ -273,8 +273,8 @@ index 000000000000..41b9f30242f2
 +#define AP1302_SCENE_CTRL_MODE_FIREWORKS	(13U << 0)
 +#define AP1302_SCENE_CTRL_MODE_SUNSET		(14U << 0)
 +#define AP1302_SCENE_CTRL_MODE_AUTO		(0xffU << 0)
-+
 +/* System Registers */
++#define AP1302_DBG_CTRL				AP1302_REG_16BIT(0x6000)
 +#define AP1302_BOOTDATA_STAGE			AP1302_REG_16BIT(0x6002)
 +#define AP1302_WARNING(n)			AP1302_REG_16BIT(0x6004 + (n) * 2)
 +#define AP1302_SENSOR_SELECT			AP1302_REG_16BIT(0x600c)
@@ -3400,13 +3400,13 @@ index 000000000000..41b9f30242f2
 +	int ret;
 +
 +	ret = ap1302_read(ap1302, AP1302_CHIP_VERSION, &value);
-+    dev_info(ap1302->dev, "AP1302_CHIP_VERSION 0x%04X\n", value);
-+    ret = ap1302_read(ap1302, AP1302_CHIP_REV, &value);
-+    dev_info(ap1302->dev, "AP1302_CHIP_REV 0x%04X\n", value);
-+    ret = ap1302_read(ap1302, AP1302_VIDEO_WIDTH, &value);
-+    dev_info(ap1302->dev, "AP1302_VIDEO_WIDTH 0x%04X (%d)\n", value, value);
-+    ret = ap1302_read(ap1302, AP1302_VIDEO_HEIGHT, &value);
-+    dev_info(ap1302->dev, "AP1302_VIDEO_HEIGHT 0x%04X (%d)\n", value, value);
++   dev_info(ap1302->dev, "AP1302_CHIP_VERSION 0x%04X\n", value);
++   ret = ap1302_read(ap1302, AP1302_CHIP_REV, &value);
++   dev_info(ap1302->dev, "AP1302_CHIP_REV 0x%04X\n", value);
++   ret = ap1302_read(ap1302, AP1302_VIDEO_WIDTH, &value);
++   dev_info(ap1302->dev, "AP1302_VIDEO_WIDTH 0x%04X (%d)\n", value, value);
++   ret = ap1302_read(ap1302, AP1302_VIDEO_HEIGHT, &value);
++   dev_info(ap1302->dev, "AP1302_VIDEO_HEIGHT 0x%04X (%d)\n", value, value);
 +
 +	unsigned int i;
 +	for (i = 0x4000; i < 0x4030; i+=2) {
@@ -3466,7 +3466,7 @@ index 000000000000..41b9f30242f2
 +	ret = ap1302_power_on_sensors(ap1302);
 +	if (ret < 0)
 +		goto error_firmware;
-+
++   ap1302_write(ap1302, AP1302_DBG_CTRL, 0xFFFF, &ret);  // Full debug
 +	/*
 +	 * Load the firmware, retrying in case of CRC errors. The AP1302 is
 +	 * reset with a full power cycle between each attempt.
@@ -3535,8 +3535,8 @@ index 000000000000..41b9f30242f2
 +	v4l2_i2c_subdev_init(sd, ap1302->client, &ap1302_subdev_ops);
 +
 +	strscpy(sd->name, DRIVER_NAME, sizeof(sd->name));
-+	strlcat(sd->name, ".", sizeof(sd->name));
-+	strlcat(sd->name, dev_name(ap1302->dev), sizeof(sd->name));
++	//strlcat(sd->name, ".", sizeof(sd->name));
++	//strlcat(sd->name, dev_name(ap1302->dev), sizeof(sd->name));
 +	dev_dbg(ap1302->dev, "name %s\n", sd->name);
 +
 +	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE | V4L2_SUBDEV_FL_HAS_EVENTS;
