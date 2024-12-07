@@ -164,16 +164,16 @@ index ba7bdf78e268..929a017c0df6 100644
  config VIDEO_CCS_PLL
  	tristate
  
-+config VIDEO_AP1302
-+	tristate "ON Semiconductor AP1302 external ISP support"
-+	depends on VIDEO_V4L2_I2C
++config VIDEO_EVDMOOM1
++	tristate "Innodisk EVDM-OOM1 sensor module support"
++	depends on I2C && VIDEO_V4L2_I2C
 +	select VIDEO_V4L2_SUBDEV_API
 +	help
 +	  This is a Video4Linux2 sensor driver for the ON Semiconductor
-+	  AP1302 ISP.
++	  EVDM-OOM1 camera module.
 +
 +	  To compile this driver as a module, choose M here: the
-+	  module will be called ar0521.
++	  module will be called evdmoom1.
 +
  config VIDEO_AR0521
  	tristate "ON Semiconductor AR0521 sensor support"
@@ -186,7 +186,7 @@ index 40132cf56ad9..07104ec4dbe1 100644
  obj-$(CONFIG_VIDEO_IR_I2C) += ir-kbd-i2c.o
  obj-$(CONFIG_VIDEO_IRS1125) += irs1125.o
  obj-$(CONFIG_VIDEO_ISL7998X) += isl7998x.o
-+obj-$(CONFIG_VIDEO_AP1302) += jac01.o
++obj-$(CONFIG_VIDEO_EVDMOOM1) += evdmoom1.o
  obj-$(CONFIG_VIDEO_KS0127) += ks0127.o
  obj-$(CONFIG_VIDEO_LM3560) += lm3560.o
  obj-$(CONFIG_VIDEO_LM3646) += lm3646.o

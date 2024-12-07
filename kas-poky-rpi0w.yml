@@ -37,7 +37,7 @@ repos:
     path: layers/meta-qt5
     branch: master
 
-  meta-rpi-ap1302:
+  meta-obe-rpi-ap1302:
     path: .
 
 bblayers_conf_header:
