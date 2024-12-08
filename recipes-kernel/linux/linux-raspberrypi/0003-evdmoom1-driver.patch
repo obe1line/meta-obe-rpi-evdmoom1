@@ -1,18 +1,20 @@
 From 9ab9d7347345e3d0e5e0312e4f8de4eb70290431 Mon Sep 17 00:00:00 2001
 From: csz <christopher.storah@leicabiosystems.com>
 Date: Sun, 8 Dec 2024 00:41:54 +1100
+Upstream-Status: Pending
 Subject: [PATCH] evdmoom1 driver
 
 ---
- evdmoom1.c | 3622 ++++++++++++++++++++++++++++++++++++++++++++++++++++
+ drivers/media/i2c/evdmoom1.c | 3622 ++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 1 insertion(+)
  1 file changed, 3622 insertions(+)
  create mode 100644 evdmoom1.c
 
-diff --git a/evdmoom1.c b/evdmoom1.c
+diff --git a/drivers/media/i2c/evdmoom1.c b/drivers/media/i2c/evdmoom1.c
 new file mode 100644
 index 0000000..471d206
 --- /dev/null
-+++ b/evdmoom1.c
++++ b/drivers/media/i2c/evdmoom1.c
 @@ -0,0 +1,3622 @@
 +// SPDX-License-Identifier: GPL-2.0-only
 +/*
