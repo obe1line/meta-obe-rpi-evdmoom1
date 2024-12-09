@@ -59,7 +59,7 @@ index 471d206c7..0cb2df30e 100644
 +	}, {
 +		.ops = &ap1302_ctrl_ops,
 +		.id = V4L2_CID_ANALOGUE_GAIN,
-+		.name = "Anaologue Gain",
++		.name = "Analogue Gain",
 +		.type = V4L2_CTRL_TYPE_INTEGER,
 +		.min = 0x0,
 +		.max = 0xFFFF,
