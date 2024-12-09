@@ -122,7 +122,7 @@ index 000000000000..90be36021516
 +// Fragment that configures an jac01
 +#include <dt-bindings/gpio/gpio.h>
 +cam_node: jac01@3d {
-+	compatible = "onnn,ap1302";
++	compatible = "inno,evdmoom1";
 +	reg = <0x3d>;
 +	status = "disabled";
 +
