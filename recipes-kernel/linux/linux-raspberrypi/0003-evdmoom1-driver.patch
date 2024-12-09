@@ -3009,8 +3009,8 @@ index 0000000..471d206
 +	char name[64];
 +	int ret;
 +
-+	ret = snprintf(name, sizeof(name), "evdmoom1_fw.bin"); //"ap1302_%s_fw.bin",
-+	//		ap1302->sensor_info.model);
++	ret = snprintf(name, sizeof(name), "ap1302_%s_fw.bin",
++			ap1302->sensor_info.model);
 +	if (ret >= sizeof(name)) {
 +		dev_err(ap1302->dev, "Firmware name too long\n");
 +		return -EINVAL;
