@@ -129,12 +129,12 @@ index 4e8d5d3b5..5ac706aee 100644
 -			}
 +	if (ap1302->test_pattern == AP1302_TP_MODE_DISABLED) {
 +		dev_dbg(ap1302->dev, "Test pattern disabled - using primary sensor.\n");
-+		value |= AP1302_SENSOR_SELECT_PATTERN_ON |
-+			AP1302_SENSOR_SELECT_SENSOR_TP;
-+	} else {
-+		dev_dbg(ap1302->dev, "Test pattern %d\n", ap1302->test_pattern);
 +		value |= AP1302_SENSOR_SELECT_TP_MODE(0) | AP1302_SENSOR_SELECT_SENSOR_PRIM |
 +			AP1302_SENSOR_SELECT_RESET_PRIM | AP1302_SENSOR_SELECT_CLOCK_PRIM;
++	} else {
++		dev_dbg(ap1302->dev, "Test pattern %d\n", ap1302->test_pattern);
++		value |= AP1302_SENSOR_SELECT_PATTERN_ON |
++			AP1302_SENSOR_SELECT_SENSOR_TP;
  	}
  
 -	dev_dbg(ap1302->dev,"Sensor Select 0x%x\n",value);
