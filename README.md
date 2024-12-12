@@ -24,3 +24,12 @@ git apply ../../../../meta-obe-rpi-ap1302/recipes-kernel/linux/linux-raspberrypi
 # E.g.
 devtool build linux-raspberrypi
 ```
+
+## TODO
+
+* Fix: Copy the jac01.dtbo into /boot/overlays
+* Fix: Crontab not running the camera.cron job
+* evdmoom1_fw.bin copy - from where?
+* set /etc/network/interfaces to "auto wlan0"
+* add wpa_supplicant (using wpa_passphrase output)
+* network time

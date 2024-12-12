@@ -11,7 +11,10 @@ SRC_URI:append = " file://evdmoom1.cfg "
 
 
 KERNEL_DEVICETREE:append = " overlays/jac01.dtbo"
-#FILES:${PN} += "/boot/arch/arm/dt/overlays/jac01.dtbo"
+FILES:${PN} += "/boot/overlays/jac01.dtbo"
 
 # do not autoload the driver as it requires a power pin enable to see the device on the I2C bus
 KERNEL_MODULE_AUTOLOAD:remove = "evdmoom1"
+
+# add 4Gb extra space
+IMAGE_ROOTFS_EXTRA_SPACE = "4194304"

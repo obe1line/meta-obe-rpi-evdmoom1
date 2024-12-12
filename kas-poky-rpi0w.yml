@@ -19,7 +19,6 @@ repos:
     layers:
       meta:
       meta-poky:
-      meta-yocto-bsp:
 
   meta-openembedded:
     url: http://git.openembedded.org/meta-openembedded
@@ -61,7 +60,12 @@ local_conf_header:
     IMAGE_INSTALL:append = " v4l-utils media-ctl"
     IMAGE_INSTALL:append = " libcamera libcamera-apps"
     IMAGE_INSTALL:append = " gstreamer1.0 gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad"
+    IMAGE_INSTALL:append = " utils"
+    IMAGE_INSTALL:append = " python3 python3-pip python3-venv python3-sqlite3 python3-fcntl zbar libdmtx"
+    IMAGE_INSTALL:append = " cronie"
+    IMAGE_INSTALL:append = " python3-opencv python3-numpy"
     KERNEL_MODULE_AUTOLOAD:append = "i2c-dev i2c-bcm2708"
+    IMAGE_BOOT_PARTITION:append = " jac01.dtbo;overlays/jac01.dtbo"
     # disable QA checks for libcamera failing builds
     INSANE_SKIP:${PN} += "buildpaths"
   debug-tweaks: |
