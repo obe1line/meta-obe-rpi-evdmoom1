@@ -1,21 +1,20 @@
-From 9ab9d7347345e3d0e5e0312e4f8de4eb70290431 Mon Sep 17 00:00:00 2001
-From: csz <christopher.storah@leicabiosystems.com>
-Date: Sun, 8 Dec 2024 00:41:54 +1100
+From 8914b9b23558807babc41c850a1def0b130c751f Mon Sep 17 00:00:00 2001
+From: Chris Storah <chris.storah@gmail.com>
+Date: Fri, 13 Dec 2024 18:34:00 +1100
 Upstream-Status: Pending
-Subject: [PATCH] evdmoom1 driver
+Subject: [PATCH] evdmoom1 kernel module
 
 ---
- drivers/media/i2c/evdmoom1.c | 3622 ++++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 1 insertion(+)
- 1 file changed, 3622 insertions(+)
- create mode 100644 evdmoom1.c
+ drivers/media/i2c/evdmoom1.c | 3683 ++++++++++++++++++++++++++++++++++
+ 1 file changed, 3683 insertions(+)
+ create mode 100644 drivers/media/i2c/evdmoom1.c
 
 diff --git a/drivers/media/i2c/evdmoom1.c b/drivers/media/i2c/evdmoom1.c
 new file mode 100644
-index 0000000..471d206
+index 000000000000..7efb2012d20a
 --- /dev/null
 +++ b/drivers/media/i2c/evdmoom1.c
-@@ -0,0 +1,3622 @@
+@@ -0,0 +1,3683 @@
 +// SPDX-License-Identifier: GPL-2.0-only
 +/*
 + * Driver for the Innodisk EVDM-OOM1 camera module.
@@ -39,6 +38,7 @@ index 0000000..471d206
 +#include <linux/mutex.h>
 +#include <linux/regmap.h>
 +#include <linux/regulator/consumer.h>
++#include <linux/bits.h>
 +
 +#include <media/media-entity.h>
 +#include <media/v4l2-ctrls.h>
@@ -284,6 +284,7 @@ index 0000000..471d206
 +#define AP1302_WARNING(n)			AP1302_REG_16BIT(0x6004 + (n) * 2)
 +#define AP1302_SENSOR_SELECT			AP1302_REG_16BIT(0x600c)
 +#define AP1302_SENSOR_SELECT_TP_MODE(n)		((n) << 8)
++#define AP1302_SENSOR_SELECT_TP_MODE_MASK	GENMASK(11, 8)
 +#define AP1302_SENSOR_SELECT_PATTERN_ON		BIT(7)
 +#define AP1302_SENSOR_SELECT_MODE_3D_ON		BIT(6)
 +#define AP1302_SENSOR_SELECT_CLOCK_SEC		BIT(5)
@@ -293,6 +294,7 @@ index 0000000..471d206
 +#define AP1302_SENSOR_SELECT_SENSOR_TP		(0U << 0)
 +#define AP1302_SENSOR_SELECT_SENSOR_PRIM	(1U << 0)
 +#define AP1302_SENSOR_SELECT_SENSOR_SEC		(2U << 0)
++#define AP1302_SENSOR_SELECT_SENSOR_MASK	GENMASK(1, 0)
 +#define AP1302_SYS_START			AP1302_REG_16BIT(0x601a)
 +#define AP1302_SYS_START_PLL_LOCK		BIT(15)
 +#define AP1302_SYS_START_LOAD_OTP		BIT(12)
@@ -512,7 +514,6 @@ index 0000000..471d206
 +	struct v4l2_subdev sd;
 +	struct media_pad pads[AP1302_PAD_MAX];
 +	struct ap1302_format formats[AP1302_PAD_MAX];
-+	unsigned int width_factor;
 +	bool streaming;
 +
 +	struct v4l2_ctrl_handler ctrls;
@@ -530,6 +531,7 @@ index 0000000..471d206
 +	bool use_vcid; // virtual channel
 +	bool stereo_order;
 +	bool primary_clk_rst_only;
++	u32 test_pattern;
 +};
 +
 +static inline struct ap1302_device *to_ap1302(struct v4l2_subdev *sd)
@@ -566,20 +568,56 @@ index 0000000..471d206
 +		.out_fmt = AP1302_PREVIEW_OUT_FMT_FT_YUV_JFIF
 +			 | AP1302_PREVIEW_OUT_FMT_FST_YUV_420,
 +		.pixel_rate = AP1302_INITIAL_PIXEL_RATE,
-+	},
-+//#if defined(MEDIA_BUS_FMT_VYYUYY8_1X24) // MEDIA_BUS_FMT_VYYUYY8_1X24 for Xilinx only ?
-+	{
++	}, {
 +		.code = MEDIA_BUS_FMT_SRGGB12_1X12,
 +		.out_fmt = AP1302_PREVIEW_OUT_FMT_FT_RAW12
 +			 | AP1302_PREVIEW_OUT_FMT_FST_RAW_SENSOR,
 +		.pixel_rate = AP1302_INITIAL_PIXEL_RATE,
++	}, {
++		.code = MEDIA_BUS_FMT_RGB888_1X24,
++		.out_fmt = AP1302_PREVIEW_OUT_FMT_FT_RGB
++			 | AP1302_PREVIEW_OUT_FMT_FST_RGB_888,
++		.pixel_rate = AP1302_INITIAL_PIXEL_RATE,
++	}, {
++		.code = MEDIA_BUS_FMT_JPEG_1X8,
++		.out_fmt = AP1302_PREVIEW_OUT_FMT_FT_JPEG_422
++			 | AP1302_PREVIEW_OUT_FMT_FST_JPEG_JFIF,
++		.pixel_rate = AP1302_INITIAL_PIXEL_RATE,
 +	},
-+//#endif
 +};
 +
-+static const struct ap1302_sensor_info ap1302_sensor_info_tpg = {
-+	.model = "tpg",
-+	.resolution = { 1920, 1080 },
++enum {
++	AP1302_TP_MODE_DISABLED = 0,
++	AP1302_TP_MODE_FLAT_COLOR,
++	AP1302_TP_MODE_PSEUDO_RANDOM,
++	AP1302_TP_MODE_COLOR_BARS,
++	AP1302_TP_MODE_GREY_BARS,
++	AP1302_TP_MODE_PRBS1,
++	AP1302_TP_MODE_PRBS2,
++	AP1302_TP_MODE_PRBS3,
++	AP1302_TP_MODE_PRBS4,
++	AP1302_TP_MODE_V_STRIPES,
++	AP1302_TP_MODE_V_RAMP,
++	AP1302_TP_MODE_WALKING_ONES_10B,
++	AP1302_TP_MODE_WALKING_ONES_8B,
++	AP1302_TP_MODE_BW,
++};
++
++static const char * const tp_qmenu[] = {
++	"Disabled",
++	"Flat Color",
++	"Pseudo Random (Noise)",
++	"100% Color Bars",
++	"Fade to Grey Bars",
++	"PRBS1",
++	"PRBS2",
++	"PRBS3",
++	"PRBS4",
++	"Vertical Stripes",
++	"Vertical Ramp",
++	"Walking 1's (10bit)",
++	"Walking 1's (8bit)",
++	"Black and White",
 +};
 +
 +/* -----------------------------------------------------------------------------
@@ -1318,35 +1356,11 @@ index 0000000..471d206
 +	return ret;
 +}
 +
-+static u16 ap1302_width_factor(struct ap1302_device *ap1302)
-+{
-+	/*
-+	 * Width factor depends on the number of camera links
-+	 */
-+
-+	//u16 width_factor=0;
-+	//unsigned int i;
-+
-+	//for (i = 0; i < ARRAY_SIZE(ap1302->sensors); ++i) {
-+	//	width_factor+= ap1302->sensors[i].link_enabled;
-+	//}
-+
-+	//if (width_factor==0 || ap1302->use_vcid) {
-+	//	width_factor = 1;
-+	//}
-+	//dev_dbg(ap1302->dev,"width_factor %d\n", width_factor);
-+	return 1;  //return width_factor;
-+}
-+
 +static int ap1302_configure(struct ap1302_device *ap1302)
 +{
 +	const struct ap1302_format *format = &ap1302->formats[AP1302_PAD_SOURCE_VC0];
 +	unsigned int data_lanes = ap1302->bus_cfg.bus.mipi_csi2.num_data_lanes;
 +	int ret = 0;
-+	u16 width_factor = ap1302_width_factor(ap1302);
-+	//u8 sensor_link = ((!!ap1302->sensors[1].link_enabled)<<1) |
-+	//		!!ap1302->sensors[0].link_enabled;
-+	u8 sensor_link = 0;
 +
 +	u32 value = AP1302_PREVIEW_HINF_CTRL_SPOOF |
 +			AP1302_PREVIEW_HINF_CTRL_MIPI_LANES(data_lanes);
@@ -1356,55 +1370,28 @@ index 0000000..471d206
 +
 +	ap1302_write(ap1302, AP1302_PREVIEW_HINF_CTRL, value, &ret);
 +
-+	value =  AP1302_SENSOR_SELECT_TP_MODE(4) ;
++	value =  AP1302_SENSOR_SELECT_TP_MODE(ap1302->test_pattern) ;
 +
-+	switch(sensor_link)
-+	{
-+		case 0:
-+			value |= AP1302_SENSOR_SELECT_PATTERN_ON |
-+				AP1302_SENSOR_SELECT_SENSOR_TP;
-+			break;
-+		case 1:
-+			value |= AP1302_SENSOR_SELECT_SENSOR_PRIM |
-+			AP1302_SENSOR_SELECT_RESET_PRIM |
-+			AP1302_SENSOR_SELECT_CLOCK_PRIM;
-+			break;
-+		case 2:
-+			value |= AP1302_SENSOR_SELECT_SENSOR_SEC;
-+			if (ap1302->primary_clk_rst_only) {
-+				value |= AP1302_SENSOR_SELECT_RESET_PRIM |
-+					AP1302_SENSOR_SELECT_CLOCK_PRIM;
-+			}
-+			else {
-+				value |= AP1302_SENSOR_SELECT_RESET_SEC |
-+					AP1302_SENSOR_SELECT_CLOCK_SEC;
-+			}
-+			break;
-+		case 3:
-+			if (ap1302->use_vcid)
-+				value |= AP1302_SENSOR_SELECT_SENSOR_PRIM;
-+			else
-+				value |= ap1302->stereo_order ?
-+					AP1302_SENSOR_SELECT_SENSOR_SEC :
-+					AP1302_SENSOR_SELECT_SENSOR_PRIM ;
-+
-+			value |= AP1302_SENSOR_SELECT_RESET_PRIM |
-+				AP1302_SENSOR_SELECT_CLOCK_PRIM |
-+				AP1302_SENSOR_SELECT_MODE_3D_ON ;
-+
-+			if (!ap1302->primary_clk_rst_only)  {
-+				value |= AP1302_SENSOR_SELECT_RESET_SEC |
-+					AP1302_SENSOR_SELECT_CLOCK_SEC;
-+			}
++	if (ap1302->test_pattern == AP1302_TP_MODE_DISABLED) {
++		dev_dbg(ap1302->dev, "Test pattern disabled - using primary sensor.\n");
++		value |= AP1302_SENSOR_SELECT_TP_MODE(0) | AP1302_SENSOR_SELECT_SENSOR_PRIM |
++			AP1302_SENSOR_SELECT_RESET_PRIM | AP1302_SENSOR_SELECT_CLOCK_PRIM;
++	} else {
++		dev_dbg(ap1302->dev, "Test pattern %d\n", ap1302->test_pattern);
++		value |= AP1302_SENSOR_SELECT_PATTERN_ON |
++			AP1302_SENSOR_SELECT_SENSOR_TP;
 +	}
 +
-+	dev_dbg(ap1302->dev,"Sensor Select 0x%x\n",value);
++	dev_dbg(ap1302->dev,"Sensor Select = 0x%x\n",value);
 +	ap1302_write(ap1302, AP1302_SENSOR_SELECT, value, &ret);
 +
++	dev_dbg(ap1302->dev,"format.width = 0x%x\n", format->format.width);
 +	ap1302_write(ap1302, AP1302_PREVIEW_WIDTH,
-+		     format->format.width / width_factor, &ret);
++		     format->format.width, &ret);
++	dev_dbg(ap1302->dev,"format.height = 0x%x\n", format->format.height);
 +	ap1302_write(ap1302, AP1302_PREVIEW_HEIGHT,
 +		     format->format.height, &ret);
++	dev_dbg(ap1302->dev,"format.width = 0x%x\n", format->format.width);
 +	ap1302_write(ap1302, AP1302_PREVIEW_OUT_FMT,
 +		     format->info->out_fmt, &ret);
 +	if (ret < 0)
@@ -1508,6 +1495,18 @@ index 0000000..471d206
 + * V4L2 Controls
 + */
 +
++static int ap1302_get_test_pattern(struct ap1302_device *ap1302, s32 *pat)
++{
++	*pat = ap1302->test_pattern;
++	return 0;
++}
++
++static int ap1302_set_test_pattern(struct ap1302_device *ap1302, s32 pat)
++{
++	ap1302->test_pattern = pat;
++	return 0;
++}
++
 +static u16 ap1302_wb_values[] = {
 +	AP1302_AWB_CTRL_MODE_OFF,	/* V4L2_WHITE_BALANCE_MANUAL */
 +	AP1302_AWB_CTRL_MODE_AUTO,	/* V4L2_WHITE_BALANCE_AUTO */
@@ -1604,6 +1603,18 @@ index 0000000..471d206
 +		return ret;
 +
 +	*value = val & AP1302_AE_MET_MASK;
++	return 0;
++}
++
++static s32 analogue_gain_dummy;
++static int ap1302_set_analogue_gain(struct ap1302_device *ap1302, s32 val)
++{
++	analogue_gain_dummy = val;
++	return 0;
++}
++static int ap1302_get_analogue_gain(struct ap1302_device *ap1302, s32 *value)
++{
++	*value = analogue_gain_dummy;
 +	return 0;
 +}
 +
@@ -2001,6 +2012,10 @@ index 0000000..471d206
 +	case V4L2_CID_GAIN:
 +		return ap1302_set_gain(ap1302, ctrl->val);
 +
++	case V4L2_CID_ANALOGUE_GAIN:
++		// TODO: Implement
++		return ap1302_set_analogue_gain(ap1302, ctrl->val);
++
 +	case V4L2_CID_HFLIP:
 +		return ap1302_set_hflip(ap1302, ctrl->val);
 +
@@ -2043,6 +2058,9 @@ index 0000000..471d206
 +	case V4L2_CID_AP1302_STEREO_ORDER:
 +		return ap1302_set_stereo_order(ap1302, ctrl->val);
 +
++	case V4L2_CID_TEST_PATTERN:
++		return ap1302_set_test_pattern(ap1302, ctrl->val);
++
 +	default:
 +		dev_dbg(ap1302->dev, "Unknown control 0x%x\n",ctrl->id);
 +		return -EINVAL;
@@ -2066,6 +2084,9 @@ index 0000000..471d206
 +
 +	case V4L2_CID_GAIN:
 +		return ap1302_get_gain(ap1302, &ctrl->val);
++
++	case V4L2_CID_ANALOGUE_GAIN:
++		return ap1302_get_analogue_gain(ap1302, &ctrl->val);
 +
 +	case V4L2_CID_HFLIP:
 +		return ap1302_get_hflip(ap1302, &ctrl->val);
@@ -2111,6 +2132,9 @@ index 0000000..471d206
 +
 +	case V4L2_CID_AP1302_STEREO_ORDER:
 +		return ap1302_get_stereo_order(ap1302, &ctrl->val);
++
++	case V4L2_CID_TEST_PATTERN:
++		return ap1302_get_test_pattern(ap1302, &ctrl->val);
 +
 +	default:
 +		return -EINVAL;
@@ -2193,6 +2217,15 @@ index 0000000..471d206
 +		.def = 0x100,
 +	}, {
 +		.ops = &ap1302_ctrl_ops,
++		.id = V4L2_CID_ANALOGUE_GAIN,
++		.name = "Analogue Gain",
++		.type = V4L2_CTRL_TYPE_INTEGER,
++		.min = 0x0,
++		.max = 0xFFFF,
++		.step = 0x100,
++		.def = 0x100,
++	}, {
++		.ops = &ap1302_ctrl_ops,
 +		.id = V4L2_CID_HFLIP,
 +		.name = "HFlip",
 +		.type = V4L2_CTRL_TYPE_BOOLEAN,
@@ -2254,7 +2287,41 @@ index 0000000..471d206
 +		.max = 1,
 +		.step = 1,
 +		.def = 0,
-+	},
++	},{
++		.ops = &ap1302_ctrl_ops,
++		.id = V4L2_CID_HBLANK,
++		.name = "HBlank",
++		.type = V4L2_CTRL_TYPE_INTEGER,
++		.min = 0,
++		.max = 0xFFFF,
++		.step = 1,
++		.def = 0,
++	}, {
++		.ops = &ap1302_ctrl_ops,
++		.id = V4L2_CID_VBLANK,
++		.name = "VBlank",
++		.type = V4L2_CTRL_TYPE_INTEGER,
++		.min = 0,
++		.max = 0xFFFF,
++		.step = 1,
++		.def = 0,
++	}, {
++		.ops = &ap1302_ctrl_ops,
++		.id = V4L2_CID_PIXEL_RATE,
++		.name = "Pixel Rate",
++		.type = V4L2_CTRL_TYPE_INTEGER,
++		.min = 0,
++		.max = 0xFFFF,
++		.step = 1,
++		.def = 0,
++	}, {
++		.ops = &ap1302_ctrl_ops,
++		.id = V4L2_CID_TEST_PATTERN,
++		.min = 0,
++		.max = (ARRAY_SIZE(tp_qmenu) - 1),
++		.def = 0,
++		.qmenu = tp_qmenu,
++	}
 +};
 +
 +static int ap1302_ctrls_init(struct ap1302_device *ap1302)
@@ -2337,7 +2404,6 @@ index 0000000..471d206
 +		 * setup.
 +		 */
 +		if (pad >= AP1302_PAD_SOURCE_VC0) {
-+			format->width *= ap1302_width_factor(ap1302);
 +			format->code = ap1302->formats[pad].info->code;
 +		} else {
 +			format->code = info->format;
@@ -2411,7 +2477,7 @@ index 0000000..471d206
 +		if (i >= ARRAY_SIZE(supported_video_formats))
 +			return -EINVAL;
 +
-+		fse->min_width = AP1302_MIN_WIDTH * ap1302_width_factor(ap1302);
++		fse->min_width = AP1302_MIN_WIDTH;
 +		fse->min_height = AP1302_MIN_HEIGHT;
 +		fse->max_width = AP1302_MAX_WIDTH;
 +		fse->max_height = AP1302_MAX_HEIGHT;
@@ -2444,7 +2510,6 @@ index 0000000..471d206
 +	const struct ap1302_format_info *info = NULL;
 +	struct v4l2_mbus_framefmt *format;
 +	unsigned int i;
-+	u16 width_factor;
 +
 +	/* Formats on the sink pads can't be changed. */
 +	if (fmt->pad < AP1302_PAD_SOURCE_VC0)
@@ -2463,16 +2528,12 @@ index 0000000..471d206
 +	if (!info)
 +		info = &supported_video_formats[0];
 +
-+
-+	width_factor = ap1302_width_factor(ap1302);
 +	/*
 +	 * Clamp the size. The width must be a multiple of 4 (or 8 in the
 +	 * dual-sensor case) and the height a multiple of 2.
 +	 */
-+	fmt->format.width = clamp(ALIGN_DOWN(fmt->format.width,
-+					     4 * width_factor),
-+				  AP1302_MIN_WIDTH * width_factor,
-+				  AP1302_MAX_WIDTH);
++	fmt->format.width = clamp(ALIGN_DOWN(fmt->format.width, 4),
++				  AP1302_MIN_WIDTH, AP1302_MAX_WIDTH);
 +	fmt->format.height = clamp(ALIGN_DOWN(fmt->format.height, 2),
 +				   AP1302_MIN_HEIGHT, AP1302_MAX_HEIGHT);
 +
@@ -2506,7 +2567,7 @@ index 0000000..471d206
 +	case V4L2_SEL_TGT_CROP:
 +		sel->r.left = 0;
 +		sel->r.top = 0;
-+		sel->r.width = resolution->width * ap1302_width_factor(ap1302);
++		sel->r.width = resolution->width;
 +		sel->r.height = resolution->height;
 +		break;
 +
@@ -3009,8 +3070,7 @@ index 0000000..471d206
 +	char name[64];
 +	int ret;
 +
-+	ret = snprintf(name, sizeof(name), "ap1302_%s_fw.bin",
-+			ap1302->sensor_info.model);
++	ret = snprintf(name, sizeof(name), "evdmoom1_fw.bin");
 +	if (ret >= sizeof(name)) {
 +		dev_err(ap1302->dev, "Firmware name too long\n");
 +		return -EINVAL;
@@ -3639,5 +3699,5 @@ index 0000000..471d206
 +MODULE_DESCRIPTION("Innodisk EVDM-OOM1 camera module driver");
 +MODULE_LICENSE("GPL");
 -- 
-2.45.2
+2.39.2
 
