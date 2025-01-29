@@ -49,7 +49,7 @@ local_conf_header:
     INHERIT += "rm_work_and_downloads"
   standard: |
     CONF_VERSION = "2"
-    PACKAGE_CLASSES = "package_rpm"
+    PACKAGE_CLASSES = "package_deb"
     SDKMACHINE = "x86_64"
     USER_CLASSES = "buildstats"
     PATCHRESOLVE = "noop"
@@ -63,17 +63,35 @@ local_conf_header:
     IMAGE_INSTALL:append = " utils"
     IMAGE_INSTALL:append = " python3 python3-pip python3-venv python3-sqlite3 python3-fcntl zbar libdmtx"
     IMAGE_INSTALL:append = " cronie"
+    # openCV JPG support requires libjpeg
+    IMAGE_INSTALL:append = " libjpeg-turbo"
     IMAGE_INSTALL:append = " python3-opencv python3-numpy"
+    # dev tools
+    IMAGE_INSTALL:append = " apt"
+    IMAGE_INSTALL:append = " cmake g++"
+    # web
+    IMAGE_INSTALL:append = " python3-flask python3-flask-cors python3-requests"
+    # uv
+    IMAGE_INSTALL:append = " uv"
+    # add 5Gb extra space to rootfs
+    IMAGE_ROOTFS_EXTRA_SPACE = "5242880"
     KERNEL_MODULE_AUTOLOAD:append = "i2c-dev i2c-bcm2708"
     IMAGE_BOOT_PARTITION:append = " jac01.dtbo;overlays/jac01.dtbo"
     # disable QA checks for libcamera failing builds
     INSANE_SKIP:${PN} += "buildpaths"
+
+    # wifi
+    DISTRO_FEATURES:append = "wifi"
+    IMAGE_INSTALL:append = " linux-firmware-rpidistro-bcm43430 "
+    IMAGE_INSTALL:append = " wpa-supplicant"
+
   debug-tweaks: |
     EXTRA_IMAGE_FEATURES:append = " allow-empty-password allow-root-login bash-completion-pkgs empty-root-password"
     EXTRA_IMAGE_FEATURES:append = " ssh-server-openssh"
+    # C++ build tools
+    IMAGE_FEATURES:append = " tools-sdk"
   rpi-specific: |
     RPI_EXTRA_CONFIG = "dtparam=i2c_vc=on"
-    DISTRO_FEATURES:append = "wifi"
   diskmon: |
     BB_DISKMON_DIRS = "\
         STOPTASKS,${TMPDIR},1G,100K \
