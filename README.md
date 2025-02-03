@@ -25,11 +25,12 @@ git apply ../../../../meta-obe-rpi-ap1302/recipes-kernel/linux/linux-raspberrypi
 devtool build linux-raspberrypi
 ```
 
+## Secure items
+wpa_supplicant.conf holds the wifi name and key.  
+It is copied from the folder __~/secure/__
+
 ## TODO
 
 * Fix: Copy the jac01.dtbo into /boot/overlays
 * Fix: Crontab not running the camera.cron job
 * evdmoom1_fw.bin copy - from where?
-* set /etc/network/interfaces to "auto wlan0"
-* add wpa_supplicant (using wpa_passphrase output)
-* network time

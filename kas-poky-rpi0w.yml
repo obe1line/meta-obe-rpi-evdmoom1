@@ -73,6 +73,9 @@ local_conf_header:
     IMAGE_INSTALL:append = " python3-flask python3-flask-cors python3-requests"
     # uv
     IMAGE_INSTALL:append = " uv"
+    IMAGE_INSTALL:append = " python3-dev"
+    # NTP client
+    IMAGE_INSTALL:append = " ntp"
     # add 5Gb extra space to rootfs
     IMAGE_ROOTFS_EXTRA_SPACE = "5242880"
     KERNEL_MODULE_AUTOLOAD:append = "i2c-dev i2c-bcm2708"
