@@ -1,2 +1,2 @@
 # at boot, install the camera driver and set the media format
-@reboot /home/root/scripts/setup.sh
+@reboot root /home/root/scripts/setup.sh

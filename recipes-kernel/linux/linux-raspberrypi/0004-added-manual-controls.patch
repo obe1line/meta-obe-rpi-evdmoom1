@@ -1,0 +1,278 @@
+From 3a4c4a90b082e347aaf0d477cdd739885ac3d0ec Mon Sep 17 00:00:00 2001
+From: Chris Storah <chris.storah@gmail.com>
+Date: Wed, 5 Feb 2025 12:45:20 +1100
+Upstream-Status: Pending
+Subject: [PATCH] added manual controls
+
+---
+ drivers/media/i2c/evdmoom1.c | 183 +++++++++++++++++++++++++++++++----
+ 1 file changed, 164 insertions(+), 19 deletions(-)
+
+diff --git a/drivers/media/i2c/evdmoom1.c b/drivers/media/i2c/evdmoom1.c
+index 7efb2012d20a..5c2fafa75d36 100644
+--- a/drivers/media/i2c/evdmoom1.c
++++ b/drivers/media/i2c/evdmoom1.c
+@@ -179,6 +179,8 @@
+ #define AP1302_PREVIEW_HINF_CTRL_MIPI_LANES(n)	((n) << 0)
+ 
+ /* IQ Registers */
++#define AP1302_AE_BV				AP1302_REG_16BIT(0x0186)
++#define AP1302_AE_BV_OFF			AP1302_REG_16BIT(0x5014)
+ #define AP1302_AE_CTRL				AP1302_REG_16BIT(0x5002)
+ #define AP1302_AE_CTRL_STATS_SEL		BIT(11)
+ #define AP1302_AE_CTRL_IMM			BIT(10)
+@@ -196,9 +198,11 @@
+ #define AP1302_AE_CTRL_AUTO_BV_ISO		(11U << 0)
+ #define AP1302_AE_CTRL_FULL_AUTO		(12U << 0)
+ #define AP1302_AE_CTRL_MODE_MASK		0x000f
++#define AP1302_AE_MANUAL_BV				AP1302_REG_16BIT(0x5004)
+ #define AP1302_AE_MANUAL_GAIN			AP1302_REG_16BIT(0x5006)
++#define AP1302_AE_MANUAL_ISO			AP1302_REG_16BIT(0x5008)
++#define AP1302_AE_MANUAL_EXP_TIME		AP1302_REG_16BIT(0x500C)
+ #define AP1302_AE_MANUAL_GAIN_MASK		0xFFFF
+-#define AP1302_AE_BV_OFF			AP1302_REG_16BIT(0x5014)
+ #define AP1302_AE_MET				AP1302_REG_16BIT(0x503E)
+ #define AP1302_AE_MET_MASK			0x0003
+ #define AP1302_AF_CTRL				AP1302_REG_16BIT(0x5058)
+@@ -411,7 +415,11 @@
+ #endif
+ #define V4L2_CID_USER_AP1302_BASE		(V4L2_CID_USER_CCS_BASE + 128)
+ 
+-#define V4L2_CID_AP1302_STEREO_ORDER				(V4L2_CID_USER_AP1302_BASE + 0)
++#define V4L2_CID_AP1302_STEREO_ORDER		(V4L2_CID_USER_AP1302_BASE + 0)
++#define V4L2_CID_AP1302_MANUAL_LUMINANCE	(V4L2_CID_USER_AP1302_BASE + 1)
++#define V4L2_CID_AP1302_MANUAL_EXP_TIME		(V4L2_CID_USER_AP1302_BASE + 2)
++#define V4L2_CID_AP1302_MANUAL_ISO			(V4L2_CID_USER_AP1302_BASE + 3)
++#define V4L2_CID_AP1302_AE_LUMINANCE		(V4L2_CID_USER_AP1302_BASE + 4)
+ 
+ struct ap1302_device;
+ 
+@@ -1545,7 +1553,7 @@ static int ap1302_get_wb_mode(struct ap1302_device *ap1302, s32 *mode)
+ 	return 0;
+ }
+ 
+-static int ap1302_set_exposure(struct ap1302_device *ap1302, s32 mode)
++static int ap1302_set_auto_exposure_mode(struct ap1302_device *ap1302, s32 mode)
+ {
+ 	u32 val;
+ 	int ret;
+@@ -1560,7 +1568,7 @@ static int ap1302_set_exposure(struct ap1302_device *ap1302, s32 mode)
+ 	return ap1302_write(ap1302, AP1302_AE_CTRL, val, NULL);
+ }
+ 
+-static int ap1302_get_exposure(struct ap1302_device *ap1302, s32 *mode)
++static int ap1302_get_auto_exposure_mode(struct ap1302_device *ap1302, s32 *mode)
+ {
+ 	u32 val;
+ 	int ret;
+@@ -1601,12 +1609,88 @@ static int ap1302_get_analogue_gain(struct ap1302_device *ap1302, s32 *value)
+ 	return 0;
+ }
+ 
++// set for manual luminance
++static int ap1302_set_bv(struct ap1302_device *ap1302, s32 val)
++{
++	return ap1302_write(ap1302, AP1302_AE_MANUAL_BV, val, NULL);
++}
++
++// get for manual luminance
++static int ap1302_get_bv(struct ap1302_device *ap1302, s32 *value)
++{
++	u32 val;
++	int
++	ret = ap1302_read(ap1302, AP1302_AE_MANUAL_BV, &val);
++	if (ret)
++		return ret;
++	*value = val;
++	return 0;
++}
++
++// set for auto-exposure luminance
++static int ap1302_set_ae_bv(struct ap1302_device *ap1302, s32 val)
++{
++	return ap1302_write(ap1302, AP1302_AE_BV, val, NULL);
++}
++
++// get for auto-exposure luminance
++static int ap1302_get_ae_bv(struct ap1302_device *ap1302, s32 *value)
++{
++	u32 val;
++	int ret;
++	ret = ap1302_read(ap1302, AP1302_AE_BV, &val);
++	if (ret)
++		return ret;
++
++	*value = val;
++	return 0;
++}
++
++// set for manual ISO
++static int ap1302_set_manual_iso(struct ap1302_device *ap1302, s32 val)
++{
++	return ap1302_write(ap1302, AP1302_AE_MANUAL_ISO, val, NULL);
++}
++
++// get for manual ISO
++static int ap1302_get_manual_iso(struct ap1302_device *ap1302, s32 *value)
++{
++	u32 val;
++	int ret;
++	ret = ap1302_read(ap1302, AP1302_AE_MANUAL_ISO, &val);
++	if (ret)
++		return ret;
++
++	*value = val;
++	return 0;
++}
++
++// set for manual exposure time
++static int ap1302_set_exp_time(struct ap1302_device *ap1302, s32 val)
++{
++	return ap1302_write(ap1302, AP1302_AE_MANUAL_EXP_TIME, val, NULL);
++}
++
++// get for manual exposure time
++static int ap1302_get_exp_time(struct ap1302_device *ap1302, s32 *value)
++{
++	u32 val;
++	int ret;
++	ret = ap1302_read(ap1302, AP1302_AE_MANUAL_EXP_TIME, &val);
++	if (ret)
++		return ret;
++
++	*value = val;
++	return 0;
++}
++
++// set for manual gain
+ static int ap1302_set_gain(struct ap1302_device *ap1302, s32 val)
+ {
+-	// Format is U8.8
+ 	return ap1302_write(ap1302, AP1302_AE_MANUAL_GAIN, val, NULL);
+ }
+ 
++// get for manual gain
+ static int ap1302_get_gain(struct ap1302_device *ap1302, s32 *value)
+ {
+ 	u32 val;
+@@ -1987,7 +2071,7 @@ static int ap1302_s_ctrl(struct v4l2_ctrl *ctrl)
+ 		return ap1302_set_wb_mode(ap1302, ctrl->val);
+ 
+ 	case V4L2_CID_EXPOSURE:
+-		return ap1302_set_exposure(ap1302, ctrl->val);
++		return ap1302_set_auto_exposure_mode(ap1302, ctrl->val);
+ 
+ 	case V4L2_CID_EXPOSURE_METERING:
+ 		return ap1302_set_exp_met(ap1302, ctrl->val);
+@@ -1995,6 +2079,18 @@ static int ap1302_s_ctrl(struct v4l2_ctrl *ctrl)
+ 	case V4L2_CID_GAIN:
+ 		return ap1302_set_gain(ap1302, ctrl->val);
+ 
++	case V4L2_CID_AP1302_MANUAL_LUMINANCE:
++		return ap1302_set_bv(ap1302, ctrl->val);
++
++	case V4L2_CID_AP1302_AE_LUMINANCE:
++		return ap1302_set_ae_bv(ap1302, ctrl->val);
++
++	case V4L2_CID_AP1302_MANUAL_ISO:
++		return ap1302_set_manual_iso(ap1302, ctrl->val);
++
++	case V4L2_CID_AP1302_MANUAL_EXP_TIME:
++		return ap1302_set_exp_time(ap1302, ctrl->val);
++
+ 	case V4L2_CID_ANALOGUE_GAIN:
+ 		// TODO: Implement
+ 		return ap1302_set_analogue_gain(ap1302, ctrl->val);
+@@ -2060,7 +2156,7 @@ static int ap1302_g_ctrl(struct v4l2_ctrl *ctrl)
+ 		return ap1302_get_wb_mode(ap1302, &ctrl->val);
+ 
+ 	case V4L2_CID_EXPOSURE:
+-		return ap1302_get_exposure(ap1302, &ctrl->val);
++		return ap1302_get_auto_exposure_mode(ap1302, &ctrl->val);
+ 
+ 	case V4L2_CID_EXPOSURE_METERING:
+ 		return ap1302_get_exp_met(ap1302, &ctrl->val);
+@@ -2068,6 +2164,18 @@ static int ap1302_g_ctrl(struct v4l2_ctrl *ctrl)
+ 	case V4L2_CID_GAIN:
+ 		return ap1302_get_gain(ap1302, &ctrl->val);
+ 
++	case V4L2_CID_AP1302_MANUAL_LUMINANCE:
++		return ap1302_get_bv(ap1302, &ctrl->val);
++
++	case V4L2_CID_AP1302_AE_LUMINANCE:
++		return ap1302_get_ae_bv(ap1302, &ctrl->val);
++
++	case V4L2_CID_AP1302_MANUAL_ISO:
++		return ap1302_get_manual_iso(ap1302, &ctrl->val);
++
++	case V4L2_CID_AP1302_MANUAL_EXP_TIME:
++		return ap1302_get_exp_time(ap1302, &ctrl->val);
++
+ 	case V4L2_CID_ANALOGUE_GAIN:
+ 		return ap1302_get_analogue_gain(ap1302, &ctrl->val);
+ 
+@@ -2174,7 +2282,7 @@ static const struct v4l2_ctrl_config ap1302_ctrls[] = {
+ 	}, {
+ 		.ops = &ap1302_ctrl_ops,
+ 		.id = V4L2_CID_EXPOSURE,
+-		.name = "Exposure",
++		.name = "Auto-exposure Mode",
+ 		.type = V4L2_CTRL_TYPE_INTEGER,
+ 		.min = 0x0,
+ 		.max = 0xC,
+@@ -2270,7 +2378,7 @@ static const struct v4l2_ctrl_config ap1302_ctrls[] = {
+ 		.max = 1,
+ 		.step = 1,
+ 		.def = 0,
+-	},{
++	}, {
+ 		.ops = &ap1302_ctrl_ops,
+ 		.id = V4L2_CID_HBLANK,
+ 		.name = "HBlank",
+@@ -2297,6 +2405,43 @@ static const struct v4l2_ctrl_config ap1302_ctrls[] = {
+ 		.max = 0xFFFF,
+ 		.step = 1,
+ 		.def = 0,
++	}, {
++		.ops = &ap1302_ctrl_ops,
++		.id = V4L2_CID_AP1302_AE_LUMINANCE,
++		.name = "Auto-exposure Luminance",
++		.type = V4L2_CTRL_TYPE_INTEGER,
++		.min = 0,
++		.max = 0xFFFF,
++		.step = 1,
++		.def = 0,
++	}, {
++		.ops = &ap1302_ctrl_ops,
++		.id = V4L2_CID_AP1302_MANUAL_LUMINANCE,
++		.name = "Manual Luminance",
++		.type = V4L2_CTRL_TYPE_INTEGER,
++		.min = 0,
++		.max = 0xFFFF,
++		.step = 1,
++		.def = 0,
++	}, {
++		.ops = &ap1302_ctrl_ops,
++		.id = V4L2_CID_AP1302_MANUAL_EXP_TIME,
++		.name = "Manual Exposure Time",
++		.type = V4L2_CTRL_TYPE_INTEGER,
++		.min = 0,
++		.max = 0xFFFF,
++		.step = 1,
++		.def = 0,
++	}, {
++
++		.ops = &ap1302_ctrl_ops,
++		.id = V4L2_CID_AP1302_MANUAL_ISO,
++		.name = "Manual ISO",
++		.type = V4L2_CTRL_TYPE_INTEGER,
++		.min = 0,
++		.max = 0xFFFF,
++		.step = 1,
++		.def = 0,
+ 	}, {
+ 		.ops = &ap1302_ctrl_ops,
+ 		.id = V4L2_CID_TEST_PATTERN,
+-- 
+2.39.2
+

@@ -3143,12 +3143,12 @@ index 000000000000..7efb2012d20a
 +		 */
 +		write_addr = *win_pos + AP1302_FW_WINDOW_OFFSET;
 +		write_size = min(len, AP1302_FW_WINDOW_SIZE - *win_pos);
-+		dev_warn(ap1302->dev,"ap1302_write_fw_window: Write %d bytes at 0x%04X\n",write_size,write_addr);
++
 +		ret = regmap_raw_write(ap1302->regmap16, write_addr, buf,
 +				       write_size);
-+		if (ret) {
-+			dev_err(ap1302->dev, "ap1302_write_fw_window: Failed to write firmware: %d\n", ret);
-+			return ret; }
++		if (ret)
++			return ret;
++
 +		buf += write_size;
 +		len -= write_size;
 +

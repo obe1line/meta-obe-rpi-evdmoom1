@@ -73,11 +73,11 @@ local_conf_header:
     IMAGE_INSTALL:append = " cmake g++"
     # web
     IMAGE_INSTALL:append = " python3-flask python3-flask-cors python3-requests"
-    # uv
-    IMAGE_INSTALL:append = " uv"
+    # uv not required for now
+    # IMAGE_INSTALL:append = " uv"
     IMAGE_INSTALL:append = " python3-dev"
-    # NTP client
-    IMAGE_INSTALL:append = " ntp"
+    # SNTP client
+    IMAGE_INSTALL:append = " sntp"
     # add 5Gb extra space to rootfs
     IMAGE_ROOTFS_EXTRA_SPACE = "5242880"
     KERNEL_MODULE_AUTOLOAD:append = "i2c-dev i2c-bcm2708"
@@ -88,8 +88,7 @@ local_conf_header:
     # wifi
     DISTRO_FEATURES:append = "wifi"
     IMAGE_INSTALL:append = " linux-firmware-rpidistro-bcm43430 "
-    IMAGE_INSTALL:append = " wpa-supplicant"
-
+    
   debug-tweaks: |
     EXTRA_IMAGE_FEATURES:append = " allow-empty-password allow-root-login bash-completion-pkgs empty-root-password"
     EXTRA_IMAGE_FEATURES:append = " ssh-server-openssh"
