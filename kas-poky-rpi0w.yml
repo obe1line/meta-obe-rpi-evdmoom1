@@ -76,6 +76,7 @@ local_conf_header:
     # uv not required for now
     # IMAGE_INSTALL:append = " uv"
     IMAGE_INSTALL:append = " python3-dev"
+    IMAGE_INSTALL:append = " python3-zxing-cpp"
     # SNTP client
     IMAGE_INSTALL:append = " sntp"
     # add 5Gb extra space to rootfs
