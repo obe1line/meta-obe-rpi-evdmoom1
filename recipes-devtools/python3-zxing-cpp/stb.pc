@@ -1,6 +1,0 @@
-includedir=/usr/include
-
-Name: stb
-Description: stb library
-Version: 2.28
-Cflags: -I${includedir} -I${includedir}/stb
