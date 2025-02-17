@@ -74,7 +74,7 @@ local_conf_header:
     # web
     IMAGE_INSTALL:append = " python3-flask python3-flask-cors python3-requests"
     # uv not required for now
-    # IMAGE_INSTALL:append = " uv"
+    IMAGE_INSTALL:append = " uv"
     IMAGE_INSTALL:append = " python3-dev"
     IMAGE_INSTALL:append = " zxing-cpp"
     # SNTP client
