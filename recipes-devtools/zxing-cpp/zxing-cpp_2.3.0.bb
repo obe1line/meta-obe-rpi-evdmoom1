@@ -6,9 +6,7 @@ LIC_FILES_CHKSUM = "file://PKG-INFO;md5=31315a70d3ab1f02fe25affbb0a4e380"
 
 inherit python_poetry_core pypi cmake pkgconfig python3-dir
 
-PYPI_SRC_URI = "https://files.pythonhosted.org/packages/d9/f2/b781bf6119abe665069777e3c0f154752cf924fe8a55fca027243abbc555/zxing_cpp-2.3.0.tar.gz"
-S = "${WORKDIR}/zxing_cpp-${PV}"
-SRC_NAME = "zxing-cpp"
+PYPI_PACKAGE = "zxing_cpp"
 SRC_URI[sha256sum] = "3babedb67a4c15c9de2c2b4c42d70af83a6c85780c1b2d9803ac64c6ae69f14e"
 
 DEPENDS += "cmake python3-pybind11 python3"
