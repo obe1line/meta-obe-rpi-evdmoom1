@@ -18,4 +18,10 @@ EXTRA_OECMAKE += "-DPYTHON_ABI=${PYTHON_ABI}"
 EXTRA_OECMAKE += "-DPYTHON3_PACKAGES_PATH:PATH=${baselib}/python${PYTHON_BASEVERSION}/site-packages"
 
 INSANE_SKIP:${PN} = "already-stripped"
-FILES:${PN} += "${libdir}"
+FILES:${PN} += "${libdir}" 
+
+do_install:append() {
+    install -d ${D}${PYTHON_SITEPACKAGES_DIR}/
+    install -m 755 ${D}${libdir}/zxing*.so ${D}${PYTHON_SITEPACKAGES_DIR}/
+    rm ${D}${libdir}/zxing*.so
+}
